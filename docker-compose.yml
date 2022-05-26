@@ -1,0 +1,29 @@
+
+version: '3.8'
+services:
+    raven:
+        image: ravendb/ravendb
+        container_name: raven
+        ports:
+            - $DB_PORT:$DB_PORT
+            - "38888:38888"
+        environment: 
+            - RAVEN_ARGS= --Setup.Mode=None --License.Eula.Accepted=true
+            - RAVEN_Security_UnsecuredAccessAllowed='PrivateNetwork'
+    user-api:
+        image: node
+        container_name: user-api
+        restart: always
+        env_file:
+            - ./.env
+        ports: 
+            - $SERVER_PORT:$SERVER_PORT
+        environment:
+            - DB_HOST=raven
+            - NODE_ENV=dev
+        depends_on:
+            - raven
+        volumes:
+        - . :/usr/src/app
+        working_dir: /usr/src/app
+        command: bash -c "npm install && npm start"
